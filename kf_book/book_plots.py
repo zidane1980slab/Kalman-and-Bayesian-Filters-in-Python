@@ -18,23 +18,53 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 
-from book_format import figsize
 from contextlib import contextmanager
 import matplotlib as mpl
+import matplotlib.pylab as pylab
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
 import numpy as np
 import sys
 import time
 
 try:
-    import seaborn
+    import seabornee
 except:
     pass
+
+
+def equal_axis():
+    pylab.rcParams['figure.figsize'] = 10,10
+    plt.axis('equal')
+
+
+def reset_axis():
+    pylab.rcParams['figure.figsize'] = 9, 3
+
+    
+def reset_figsize():
+    pylab.rcParams['figure.figsize'] = 9, 4
+
+
+def set_figsize(x=9, y=4):
+    pylab.rcParams['figure.figsize'] = x, y
+
+
+@contextmanager
+def figsize(x=9, y=4):
+    """Temporarily set the figure size using 'with figsize(a,b):'"""
+
+    size = pylab.rcParams['figure.figsize']
+    set_figsize(x, y)
+    yield
+    pylab.rcParams['figure.figsize'] = size
+
+
 
 """ If the plot is inline (%matplotlib inline) we need to
 do special processing for the interactive_plot context manager,
 otherwise it outputs a lot of extra <matplotlib.figure.figure
-type output into the notebook.""" 
+type output into the notebook."""
 
 IS_INLINE = mpl.get_backend().find('backend_inline') != -1
 
@@ -49,12 +79,12 @@ def end_interactive(fig):
     time.sleep(1.)
     plt.close(fig)
 
-    
+
 @contextmanager
 def interactive_plot(close=True, fig=None):
     if fig is None and not IS_INLINE:
         fig = plt.figure()
-    
+
     yield
     try:
         # if the figure only uses annotations tight_output
@@ -63,7 +93,7 @@ def interactive_plot(close=True, fig=None):
     except:
         pass
 
-    if not IS_INLINE: 
+    if not IS_INLINE:
         plt.show()
 
     if close and not IS_INLINE:
@@ -90,7 +120,6 @@ def plot_errorbar1():
         plot_errorbars([(160, 8, 'A'), (170, 8, 'B')],
                        xlims=(145, 185), ylims=(-1, 1))
         plt.show()
-        plt.savefig('../figs/gh_errorbar1.png', pad_inches=0.)
 
 
 def plot_errorbar2():
@@ -98,18 +127,16 @@ def plot_errorbar2():
         plt.figure()
         plot_errorbars([(160, 3, 'A'), (170, 9, 'B')],
                        xlims=(145, 185), ylims=(-1, 1))
-        plt.savefig('../figs/gh_errorbar2.png', pad_inches=0.)
 
 def plot_errorbar3():
     with figsize(y=2):
         plt.figure()
         plot_errorbars([(160, 1, 'A'), (170, 9, 'B')],
                        xlims=(145, 185), ylims=(-1, 1))
-        plt.savefig('../figs/gh_errorbar3.png', pad_inches=0.1)
 
 
 def plot_hypothesis1():
-    with figsize(y=2.5):
+    with figsize(y=3.5):
         plt.figure()
         plt.errorbar([1, 2, 3], [170, 161, 169],
                      xerr=0, yerr=10, fmt='bo', capthick=2, capsize=10)
@@ -122,7 +149,6 @@ def plot_hypothesis1():
         plt.xlabel('day')
         plt.ylabel('lbs')
         plt.tight_layout()
-    plt.savefig('../figs/gh_hypothesis1.png', pad_inches=0.1)
 
 
 def plot_hypothesis2():
@@ -134,7 +160,6 @@ def plot_hypothesis2():
         plt.xlim(0, 11); plt.ylim(150, 185)
         plt.xlabel('day')
         plt.ylabel('lbs')
-    plt.savefig('../figs/gh_hypothesis2.png', pad_inches=0.1)
 
 
 def plot_hypothesis3():
@@ -150,7 +175,6 @@ def plot_hypothesis3():
         plt.xlim(0, 13); plt.ylim(145, 185)
         plt.xlabel('day')
         plt.ylabel('weight (lbs)')
-    plt.savefig('../figs/gh_hypothesis3.png', pad_inches=0.1)
 
 
 def plot_hypothesis4():
@@ -167,7 +191,6 @@ def plot_hypothesis4():
         plt.xlabel('day')
         plt.ylabel('weight (lbs)')
         show_legend()
-    plt.savefig('../figs/gh_hypothesis4.png', pad_inches=0.1)
 
 
 def plot_hypothesis5():
@@ -186,7 +209,6 @@ def plot_hypothesis5():
         plt.xlabel('day')
         plt.ylabel('weight (lbs)')
         show_legend()
-    plt.savefig('../figs/gh_hypothesis5.png', pad_inches=0.1)
 
 
 def plot_estimate_chart_1():
@@ -202,7 +224,6 @@ def plot_estimate_chart_1():
         ax.xaxis.grid(True, which="major", linestyle='dotted')
         ax.yaxis.grid(True, which="major", linestyle='dotted')
         plt.tight_layout()
-    plt.savefig('../figs/gh_estimate1.png', pad_inches=0.1)
 
 
 def plot_estimate_chart_2():
@@ -222,7 +243,7 @@ def plot_estimate_chart_2():
         plt.ylabel('weight (lbs)')
         ax.xaxis.grid(True, which="major", linestyle='dotted')
         ax.yaxis.grid(True, which="major", linestyle='dotted')
-    plt.savefig('../figs/gh_estimate2.png', pad_inches=0.1)
+
 
 def plot_estimate_chart_3():
     with figsize(y=2.5):
@@ -236,7 +257,7 @@ def plot_estimate_chart_3():
                     arrowprops=dict(arrowstyle='-',
                                     ec='k', lw=3, shrinkA=8, shrinkB=8))
 
-        est_y = ((164.2-158)*.8 + 158)
+        est_y = (158 + .4*(164.2-158))
         plt.scatter ([0,1], [158.0,est_y], c='k',s=128)
         plt.scatter ([1], [164.2], c='b',s=128)
         plt.scatter ([1], [159], c='r', s=128)
@@ -248,15 +269,13 @@ def plot_estimate_chart_3():
         plt.ylabel('weight (lbs)')
         ax.xaxis.grid(True, which="major", linestyle='dotted')
         ax.yaxis.grid(True, which="major", linestyle='dotted')
-    plt.savefig('../figs/gh_estimate3.png', pad_inches=0.1)
 
 
 
 def create_predict_update_chart(box_bg = '#CCCCCC',
                 arrow1 = '#88CCFF',
                 arrow2 = '#88FF88'):
-    plt.figure(figsize=(4, 2.), facecolor='w')
-    #plt.figure(figsize=(14,12.5), facecolor='w')
+    plt.figure(figsize=(4,4), facecolor='w')
     ax = plt.axes((0, 0, 1, 1),
                   xticks=[], yticks=[], frameon=False)
 
@@ -316,7 +335,6 @@ def create_predict_update_chart(box_bg = '#CCCCCC',
               ha='center', va='center', fontsize=14)
     plt.axis('equal')
     plt.xlim(2,10)
-    plt.savefig('../figs/gh_predict_update.png', pad_inches=0.1)
 
 
 def show_residual_chart(show_eq=True, show_H=False):
@@ -359,11 +377,6 @@ def show_residual_chart(show_eq=True, show_H=False):
     ax.yaxis.set_label_position("right")
     plt.ylabel('state')
     plt.xlim(-0.1, 1.5)
-    if show_H:
-        plt.savefig('../figs/residual_chart_with_h.png', pad_inches=0.1)
-    else:
-        plt.savefig('../figs/residual_chart.png', pad_inches=0.1)
-
 
 
 def show_legend():
@@ -520,20 +533,18 @@ def plot_track(xs, ys=None, label='Track', c='k', lw=2, **kwargs):
 
 
 def plot_filter(xs, ys=None, c='#013afe', label='Filter', var=None, **kwargs):
-#def plot_filter(xs, ys=None, c='#6d904f', label='Filter', vars=None, **kwargs):
-
-
+    """ plot result of KF with color `c`, optionally displaying the variance
+    of `xs`. Returns the list of lines generated by plt.plot()"""
+ 
     if ys is None:
         ys = xs
         xs = range(len(ys))
 
-    plt.plot(xs, ys, color=c, label=label, **kwargs)
-
+    lines = plt.plot(xs, ys, color=c, label=label, **kwargs)
     if var is None:
-        return
+        return lines
 
     var = np.asarray(var)
-
     std = np.sqrt(var)
     std_top = ys+std
     std_btm = ys-std
@@ -542,6 +553,8 @@ def plot_filter(xs, ys=None, c='#013afe', label='Filter', var=None, **kwargs):
     plt.plot(xs, ys-std, linestyle=':', color='k', lw=2)
     plt.fill_between(xs, std_btm, std_top,
                      facecolor='yellow', alpha=0.2)
+
+    return lines
 
 
 

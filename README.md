@@ -1,15 +1,17 @@
-#[Kalman and Bayesian Filters in Python](https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python)
+# [Kalman and Bayesian Filters in Python](https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python)
 
 
-Introductory text for Kalman and Bayesian filters. All code is written in Python, and the book itself is written in IPython Notebook (now known as Jupyter) so that you can run and modify the code in the book in place, seeing the results inside the book. What better way to learn?
+Introductory text for Kalman and Bayesian filters. All code is written in Python, and the book itself is written using Juptyer Notebook so that you can run and modify the code in your browser. What better way to learn?
 
 
-**"Kalman and Bayesian Filters in Python" looks amazing! ... your book is just what I needed** - Allen Downey, Professor and O'Reilly author of several math and programming textbooks, via twitter.
+**"Kalman and Bayesian Filters in Python" looks amazing! ... your book is just what I needed** - Allen Downey, Professor and O'Reilly author.
+
+**Thanks for all your work on publishing your introductory text on Kalman Filtering, as well as the Python Kalman Filtering libraries. We’ve been using it internally to teach some key state estimation concepts to folks and it’s been a huge help.** - Sam Rodkey, SpaceX
 
 Start reading online now by clicking the binder badge below:
 
 
-[![Binder](http://mybinder.org/badge.svg)](http://mybinder.org/repo/rlabbe/Kalman-and-Bayesian-Filters-in-Python)
+[![Binder](http://mybinder.org/badge.svg)](https://beta.mybinder.org/v2/gh/rlabbe/Kalman-and-Bayesian-Filters-in-Python/master)
 
 
 
@@ -18,18 +20,26 @@ Start reading online now by clicking the binder badge below:
 What are Kalman and Bayesian Filters?
 -----
 
-We measure things in the world with sensors. For example, thermometers measure temperature, anemometers measure wind speed, scales measure weights. We measure distances with things like sonar, lasers, and calipers. 
+Sensors are noisy. The world is full of data and events that we want to measure and track, but we cannot rely on sensors to give us perfect information. The GPS in my car reports altitude. Each time I pass the same point in the road it reports a slightly different altitude. My kitchen scale gives me different readings if I weigh the same object twice.
 
-Unfortunately, no sensor is perfect. For example, a thermometer might only be accurate to within 2 degrees. A laser rangefinder might be accurate to a meter. A bathroom scale might be accurate to 1 kilogram, whereas a kitchen scale might be accurate to a gram or less. 
+In simple cases the solution is obvious. If my scale gives slightly different readings I can just take a few readings and average them. Or I can replace it with a more accurate scale. But what do we do when the sensor is very noisy, or the environment makes data collection difficult? We may be trying to track the movement of a low flying aircraft. We may want to create an autopilot for a drone, or ensure that our farm tractor seeded the entire field. I work on computer vision, and I need to track moving objects in images, and the computer vision algorithms create very noisy and unreliable results.
 
-Furthermore, a sensor might not present all of the information we would like. Suppose we want to know the map coordinates of a structure that we are surveying. A laser rangefinder tells us the distance to an object, but it does not tell us where in the world that object is. The measurement is *relative* to the position of the rangefinder. If the rangefinder does not provide an angle (bearing) to the measured object we can only state that the object lies somewhere within a donut shaped circle around the rangefinder. If we do know the location of the rangefinder and the angle then we can compute the coordinates of the structure. But how do we know the rangefinder's position? With sensors. How do we measure the angle? With sensors. And sensors are inaccurate, so both of those measurements have a degree of error in them.
+This book teaches you how to solve these sorts of filtering problems. I use many different algorithms, but they are all based on Bayesian probability. In simple terms Bayesian probability determines what is likely to be true based on past information.
 
-Is there a way to reduce the amount of error in the measurements? You may have some ideas already. What if you were to take ten measurements and average them? For many kinds of sensor errors this does improve our estimate. You might imagine 
+If I asked you the heading of my car at this moment you would have no idea. You'd proffer a number between 1∘∘ and 360∘∘ degrees, and have a 1 in 360 chance of being right. Now suppose I told you that 2 seconds ago its heading was 243∘∘. In 2 seconds my car could not turn very far so you could make a far more accurate prediction. You are using past information to more accurately infer information about the present or future.
+
+The world is also noisy. That prediction helps you make a better estimate, but it also subject to noise. I may have just braked for a dog or swerved around a pothole. Strong winds and ice on the road are external influences on the path of my car. In control literature we call this noise though you may not think of it that way.
+
+There is more to Bayesian probability, but you have the main idea. Knowledge is uncertain, and we alter our beliefs based on the strength of the evidence. Kalman and Bayesian filters blend our noisy and limited knowledge of how a system behaves with the noisy and limited sensor readings to produce the best possible estimate of the state of the system. Our principle is to never discard information.
+
+Say we are tracking an object and a sensor reports that it suddenly changed direction. Did it really turn, or is the data noisy? It depends. If this is a jet fighter we'd be very inclined to believe the report of a sudden maneuver. If it is a freight train on a straight track we would discount it. We'd further modify our belief depending on how accurate the sensor is. Our beliefs depend on the past and on our knowledge of the system we are tracking and on the characteristics of the sensors.
+
+The Kalman filter was invented by Rudolf Emil Kálmán to solve this sort of problem in a mathematically optimal way. Its first use was on the Apollo missions to the moon, and since then it has been used in an enormous variety of domains. There are Kalman filters in aircraft, on submarines, and on cruise missiles. Wall street uses them to track the market. They are used in robots, in IoT (Internet of Things) sensors, and in laboratory instruments. Chemical plants use them to control and monitor reactions. They are used to perform medical imaging and to remove noise from cardiac signals. If it involves a sensor and/or time-series data, a Kalman filter or a close relative to the Kalman filter is usually involved.
 
 Motivation
 -----
 
-This is a book for programmers that have a need or interest in Kalman filtering. The motivation for this book came out of my desire for a gentle introduction to Kalman filtering. I'm a software engineer that spent almost two decades in the avionics field, and so I have always been 'bumping elbows' with the Kalman filter, but never implemented one myself. As I moved into solving tracking problems with computer vision the need became urgent. There are classic textbooks in the field, such as Grewal and Andrew's excellent *Kalman Filtering*. But sitting down and trying to read many of these books is a dismal experience if you do not have the required background. Typically the first few chapters fly through several years of undergraduate math, blithely referring you to textbooks on topics such as Itō calculus, and present an entire semester's worth of statistics in a few brief paragraphs. They are good texts for an upper undergraduate course, and an invaluable reference to researchers and professionals, but the going is truly difficult for the more casual reader. Symbology is introduced without explanation, different texts use different terms and variables for the same concept, and the books are almost devoid of examples or worked problems. I often found myself able to parse the words and comprehend the mathematics of a definition, but had no idea as to what real world phenomena they describe. "But what does that *mean?*" was my repeated thought.
+The motivation for this book came out of my desire for a gentle introduction to Kalman filtering. I'm a software engineer that spent almost two decades in the avionics field, and so I have always been 'bumping elbows' with the Kalman filter, but never implemented one myself. As I moved into solving tracking problems with computer vision the need became urgent. There are classic textbooks in the field, such as Grewal and Andrew's excellent *Kalman Filtering*. But sitting down and trying to read many of these books is a dismal experience if you do not have the required background. Typically the first few chapters fly through several years of undergraduate math, blithely referring you to textbooks on topics such as Itō calculus, and present an entire semester's worth of statistics in a few brief paragraphs. They are good texts for an upper undergraduate course, and an invaluable reference to researchers and professionals, but the going is truly difficult for the more casual reader. Symbology is introduced without explanation, different texts use different terms and variables for the same concept, and the books are almost devoid of examples or worked problems. I often found myself able to parse the words and comprehend the mathematics of a definition, but had no idea as to what real world phenomena they describe. "But what does that *mean?*" was my repeated thought.
 
 However, as I began to finally understand the Kalman filter I realized the underlying concepts are quite straightforward. A few simple probability rules, some intuition about how we integrate disparate knowledge to explain events in our everyday life and the core concepts of the Kalman filter are accessible. Kalman filters have a reputation for difficulty, but shorn of much of the formal terminology the beauty of the subject and of their math became clear to me, and I fell in love with the topic. 
 
@@ -45,34 +55,28 @@ This book has exercises, but it also has the answers. I trust you. If you just n
 
 This book has supporting libraries for computing statistics, plotting various things related to filters, and for the various filters that we cover. This does require a strong caveat; most of the code is written for didactic purposes. It is rare that I chose the most efficient solution (which often obscures the intent of the code), and in the first parts of the book I did not concern myself with numerical stability. This is important to understand - Kalman filters in aircraft are carefully designed and implemented to be numerically stable; the naive implementation is not stable in many cases. If you are serious about Kalman filters this book will not be the last book you need. My intention is to introduce you to the concepts and mathematics, and to get you to the point where the textbooks are approachable.
 
-Finally, this book is free. The cost for the books required to learn Kalman filtering is somewhat prohibitive even for a Silicon Valley engineer like myself; I cannot believe the are within the reach of someone in a depressed economy, or a financially struggling student. I have gained so much from free software like Python, and free books like those from Allen B. Downey [here](http://www.greenteapress.com/). It's time to repay that. So, the book is free, it is hosted on free servers, and it uses only free and open software such as IPython and mathjax to create the book. 
+Finally, this book is free. The cost for the books required to learn Kalman filtering is somewhat prohibitive even for a Silicon Valley engineer like myself; I cannot believe they are within the reach of someone in a depressed economy, or a financially struggling student. I have gained so much from free software like Python, and free books like those from Allen B. Downey [here](http://www.greenteapress.com/). It's time to repay that. So, the book is free, it is hosted on free servers, and it uses only free and open software such as IPython and mathjax to create the book. 
 
-In Development
---------------
-This book is still very much in development. Chapters are incomplete, code and text could be incorrect. I strive for correctness during development, but I fail. Raise an issue on GitHub, or email me, if you find a problem and I will try to fix it as soon as possible.
 
 ## Reading Online
 
 The book is written as a collection of Jupyter Notebooks, an interactive, browser based system that allows you to combine text, Python, and math into your browser. There are multiple ways to read these online, listed below.
 
-### GitHub
-
-GitHub is able to render the notebooks directly. The quickest way to view a notebook is to just click on them above. Chapters names are prefaced with numbers to indicate their order 01_gh_filter.ipynb, and so on. Rendering may be a bit slow or imperfect. Notebooks are rendered statically - you can read them, but not modify or run the code.
-
 ### binder
 
-I am experimentally trying a new service, binder. binder serves interactive notebooks online, so you can run the code and change the code within your browser without downloading the book or installing Jupyter. I have not experimented with it much. Please raise an issue on my GitHub page if anything fails. I'm not officially supporting this as it is in beta, but I'm quite excited about the possibilities.
+binder serves interactive notebooks online, so you can run the code and change the code within your browser without downloading the book or installing Jupyter. 
 
-[![Binder](http://mybinder.org/badge.svg)](http://mybinder.org/repo/rlabbe/Kalman-and-Bayesian-Filters-in-Python)
+[![Binder](http://mybinder.org/badge.svg)](https://beta.mybinder.org/v2/gh/rlabbe/Kalman-and-Bayesian-Filters-in-Python/master)
 
 
 ### nbviewer
 
 The website http://nbviewer.org provides an Jupyter Notebook server that renders notebooks stored at github (or elsewhere). The rendering is done in real time when you load the book. You may use [*this nbviewer link*](http://nbviewer.ipython.org/github/rlabbe/Kalman-and-Bayesian-Filters-in-Python/blob/master/table_of_contents.ipynb) to access my book via nbviewer. If you read my book today, and then I make a change tomorrow, when you go back tomorrow you will see that change. Notebooks are rendered statically - you can read them, but not modify or run the code.
 
-### SageMathCloud
+### GitHub
 
-The Preface contains instructions on how to host the book online, for free, on SageMath's cloud server (cloud.sagemath.com) that allows you to run and alter the code insde the Notebooks. It takes 5 minutes to set up. We are working to make this easier to use. 
+GitHub is able to render the notebooks directly. The quickest way to view a notebook is to just click on them above. Note: I have found this to be buggy - sometimes it cannot open files that are readable by all the other methods here. Chapters names are prefaced with numbers to indicate their order 01_gh_filter.ipynb, and so on.  Notebooks are rendered statically - you can read them, but not modify or run the code.
+
 
 Issues or Questions
 ------
@@ -85,19 +89,14 @@ The preface available from the link above has all the information in this README
 PDF Version
 -----
 I used to keep a PDF version of the book in this repository. However, git does not do well with binary blobs like that, and the repository was getting too big. I deleted it and it's history from git. I am now providing it 
-on my google drive [here](https://drive.google.com/file/d/0By_SW19c1BfhSVFzNHc0SjduNzg/view?usp=sharing)
+on my google drive [here](https://drive.google.com/open?id=0By_SW19c1BfhSVFzNHc0SjduNzg)
 
 The PDF will usually lag behind what is in github as I don't update it for every minor check in.
-
-As an experiment I have generated a version for 6x9 paper size. I find it a bit easier to read from a PDF viewer. I may or may not continue to support this format. At the moment the section and chapter names don't fit the top of the page. I know how to fix it, but that is not a top priority for me at the moment.
-
-https://drive.google.com/file/d/0By_SW19c1BfhTHRXWFJ1RUtvaDQ/view?usp=sharing
 
 
 ## Downloading the book
 
-
-However, this book is intended to be interactive and I recommend using it in that form. It's a little more to set up, but worth it. If you install IPython and some supporting libraries  on your computer and then clone this book you will be able to run all of the code in the book yourself. You can perform experiments, see how filters react to different data, see how different filters react to the same data, and so on. I find this sort of immediate feedback both vital and invigorating. You do not have to wonder "what happens if". Try it and see!
+However, this book is intended to be interactive and I recommend using it in that form. It's a little more effort to set up, but worth it. If you install IPython and some supporting libraries  on your computer and then clone this book you will be able to run all of the code in the book yourself. You can perform experiments, see how filters react to different data, see how different filters react to the same data, and so on. I find this sort of immediate feedback both vital and invigorating. You do not have to wonder "what happens if". Try it and see!
 
 The github pages for this project are at https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python You can clone it to your hard drive with the command 
 
@@ -109,13 +108,11 @@ This will create a directory named Kalman-and-Bayesian-Filters-in-Python.
 
 Follow the instructions in **Installation and Software Requirements** below to install all the supporting sofware require. Then, navigate to the directory, and run IPython notebook with the command 
 
-    ipython notebook
+    jupyter notebook
 
 This will open a browser window showing the contents of the base directory. The book is organized into chapters. To read Chapter 2, click on the link for chapter 2. This will cause the browser to open that subdirectory. In each subdirectory there will be one or more IPython Notebooks (all notebooks have a .ipynb file extension). The chapter contents are in the notebook with the same name as the chapter name. There are sometimes supporting notebooks for doing things like generating animations that are displayed in the chapter. These are not intended to be read by the end user, but of course if you are curious as to how an animation is made go ahead and take a look.
 
 This is admittedly a somewhat cumbersome interface to a book; I am following in the footsteps of several other projects that are somewhat repurposing Jupyter Notebook to generate entire books. I feel the slight annoyances have a huge payoff - instead of having to download a separate code base and run it in an IDE while you try to read a book, all of the code and text is in one place. If you want to alter the code, you may do so and immediately see the effects of your change. If you find a bug, you can make a fix, and push it back to my repository so that everyone in the world benefits. And, of course, you will never encounter a problem I face all the time with traditional books - the book and the code are out of sync with each other, and you are left scratching your head as to which source to trust.
-
-**Breaking change: I have upgraded to IPython 3.0. This release alters the notebook format (.ipynb) files. If you are running an older version you will likely get the unhelpful error message "Bad request" when you try to open the notebook. Note that this is the version number for _IPython_, which provides the IPython Notebook software, and not the Python version. I.e. you can run these notebooks with Python 2.7, so long as you have IPython 3.0 installed. IPython 3.0 was released on Febuary 27, 2015, so if your install is later than that you will have to update IPython. IPython 2.4 can read the files, but not write them. I apologize if you are using an earlier version, but this is an unavoidable change and I'd rather change now instead of later. This will not affect you if you are reading online, only if you are running the notebooks on your local computer. Please note that this has nothing to do with Python 3 - you can run Python 2.7 in IPython 3.**
 
 
 Companion Software
@@ -163,7 +160,6 @@ I recommend using pip for the install, as I try hard (sometimes I fail) to make 
 
 FilterPy is  hosted github at (https://github.com/rlabbe/filterpy).  If you want the bleading edge release you will want to grab a copy from github, and follow your Python installation's instructions for adding it to the Python search path. However, it is quite possible that it will not be compatible with the notebooks in this project. I try to make sure the notebooks are in sync with the PyPi hosted version.
 
-
 Code that is specific to the book is stored with the book in the subdirectory ./*code*. This code is in a state of flux; I do not wish to document it here yet. I do mention in the book when I use code from this directory, so it should not be a mystery.
 
 In the *code* subdirectory there are Python files with a name like *xxx*_internal.py. I use these to store functions that are useful for a specific chapter. This allows me to hide away Python code that is not particularly interesting to read - I may be generating a plot or chart, and I want you to focus on the contents of the chart, not the mechanics of how I generate that chart with Python. If you are curious as to the mechanics of that, just go and browse the source.
@@ -171,7 +167,6 @@ In the *code* subdirectory there are Python files with a name like *xxx*_interna
 Some chapters introduce functions that are useful for the rest of the book. Those functions are initially defined within the Notebook itself, but the code is also stored in a Python file that is imported if needed in later chapters. I do document when I do this where the function is first defined, but this is still a work in progress. I try to avoid this because then I always face the issue of code in the directory becoming out of sync with the code in the book. However, IPython Notebook does not give us a way to refer to code cells in other notebooks, so this is the only mechanism I know of to share functionality across notebooks.
 
 There is an undocumented directory called **experiments**. This is where I write and test code prior to putting it in the book. There is some interesting stuff in there, and feel free to look at it. As the book evolves I plan to create examples and projects, and a lot of this material will end up there. Small experiments will eventually just be deleted. If you are just interested in reading the book you can safely ignore this directory. 
-
 
 The directory **code** contains a css file containing the style guide for the book. The default look and feel of IPython Notebook is rather plain. Work is being done on this. I have followed the examples set by books such as [Probabilistic Programming and Bayesian Methods for Hackers](http://nbviewer.ipython.org/github/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/blob/master/Chapter1_Introduction/Chapter1.ipynb). I have also been very influenced by Professor Lorena Barba's fantastic work, [available here](https://github.com/barbagroup/CFDPython). I owe all of my look and feel to the work of these projects. 
 

@@ -16,14 +16,18 @@ for more information.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import code.book_plots as bp
-from code.book_plots import interactive_plot
+from mpl_toolkits.mplot3d import Axes3D
+
+try:
+    import kf_book.book_plots as bp
+except:
+    import book_plots as bp
+
 import filterpy.stats as stats
 from filterpy.stats import plot_covariance_ellipse
 from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.random import multivariate_normal
 
@@ -60,9 +64,8 @@ def zs_var_275():
 
 
 def plot_track_ellipses(N, zs, ps, cov, title):
-    bp.plot_measurements(range(1,N + 1), zs)
-    plt.plot(range(1, N + 1), ps, c='b', lw=2, label='filter')
-    plt.legend(loc='best')
+    #bp.plot_measurements(range(1,N + 1), zs)
+    #plt.plot(range(1, N + 1), ps, c='b', lw=2, label='filter')
     plt.title(title)
 
     for i,p in enumerate(cov):
@@ -75,11 +78,8 @@ def plot_track_ellipses(N, zs, ps, cov, title):
             plt.text (20, 5, s, fontsize=18)
             s = ('$\sigma^2_{vel} = %.2f$' % p[1, 1])
             plt.text (20, 0, s, fontsize=18)
-    plt.xlim(-10, 80)
+    plt.ylim(-5, 20)
     plt.gca().set_aspect('equal')
-    plt.show()
-
-
 
 
 def plot_gaussian_multiply():
@@ -148,7 +148,7 @@ def show_position_prediction_chart():
     plt.xticks(np.arange(1,5,1))
     plt.yticks(np.arange(1,5,1))
 
-    plt.scatter ([4], [4], c='g',s=128, color='#8EBA42')
+    plt.scatter ([4], [4], s=128, color='#8EBA42')
     ax = plt.axes()
     ax.annotate('', xy=(4,4), xytext=(3,3),
                 arrowprops=dict(arrowstyle='->',
@@ -278,33 +278,44 @@ def plot_3d_covariance(mean, cov):
 
     xs = np.arange(minx, maxx, (maxx-minx)/40.)
     ys = np.arange(miny, maxy, (maxy-miny)/40.)
-    xv, yv = np.meshgrid (xs, ys)
+    xv, yv = np.meshgrid(xs, ys)
 
     zs = np.array([100.* stats.multivariate_gaussian(np.array([x,y]),mean,cov) \
                    for x, y in zip(np.ravel(xv), np.ravel(yv))])
     zv = zs.reshape(xv.shape)
 
     maxz = np.max(zs)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
 
-    #ax = plt.figure().add_subplot(111, projection='3d')
-    ax = plt.gca(projection='3d')
+    #ax = plt.gca(projection='3d')
     ax.plot_surface(xv, yv, zv, rstride=1, cstride=1, cmap=cm.autumn)
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
 
-
+    # For unknown reasons this started failing in Jupyter notebook when
+    # using `%matplotlib inline` magic. Still works fine in IPython or when
+    # `%matplotlib notebook` magic is used.
     x = mean[0]
     zs = np.array([100.* stats.multivariate_gaussian(np.array([x, y]),mean,cov)
                    for _, y in zip(np.ravel(xv), np.ravel(yv))])
     zv = zs.reshape(xv.shape)
-    ax.contour(xv, yv, zv, zdir='x', offset=minx-1, cmap=cm.binary)
+    try:
+        pass
+        #ax.contour(xv, yv, zv, zdir='x', offset=minx-1, cmap=cm.binary)
+    except:
+        pass
 
     y = mean[1]
     zs = np.array([100.* stats.multivariate_gaussian(np.array([x, y]),mean,cov)
                    for x, _ in zip(np.ravel(xv), np.ravel(yv))])
     zv = zs.reshape(xv.shape)
-    ax.contour(xv, yv, zv, zdir='y', offset=maxy, cmap=cm.binary)
+    try:
+        pass
+        #ax.contour(xv, yv, zv, zdir='y', offset=maxy, cmap=cm.binary)
+    except:
+        pass
 
 
 def plot_3d_sampled_covariance(mean, cov):
@@ -378,7 +389,7 @@ def plot_3_covariances():
     plt.gca().grid(b=False)
     plt.gca().set_xticks([0,1,2,3,4])
     plot_covariance_ellipse((2, 7), cov=P, facecolor='g', alpha=0.2,
-                            title='|2 0|\n|0 2|', std=[1,2,3], axis_equal=False)
+                            title='|2 0|\n|0 2|', std=[3], axis_equal=False)
     plt.ylim((0, 15))
     plt.gca().set_aspect('equal', adjustable='box')
 
@@ -389,7 +400,7 @@ def plot_3_covariances():
     plt.ylim((0, 15))
     plt.gca().set_aspect('equal', adjustable='box')
     plot_covariance_ellipse((2, 7), P, facecolor='g', alpha=0.2,
-                            std=[1,2,3],axis_equal=False, title='|2 0|\n|0 6|')
+                            std=[3],axis_equal=False, title='|2 0|\n|0 6|')
 
     plt.subplot(133)
     plt.gca().grid(b=False)
@@ -398,8 +409,8 @@ def plot_3_covariances():
     plt.ylim((0, 15))
     plt.gca().set_aspect('equal', adjustable='box')
     plot_covariance_ellipse((2, 7), P, facecolor='g', alpha=0.2,
-                            axis_equal=False,std=[1,2,3],
-                            title='|2 1.2|\n|1.2 2|')
+                            axis_equal=False,std=[3],
+                            title='|2.0 1.2|\n|1.2 2.0|')
 
     plt.tight_layout()
     plt.show()
@@ -424,45 +435,45 @@ def plot_track(ps, actual, zs, cov, std_scale=1,
                xlabel='time', ylabel='position',
                title='Kalman Filter'):
 
-    with interactive_plot():
-        count = len(zs)
-        zs = np.asarray(zs)
+    count = len(zs)
+    zs = np.asarray(zs)
 
-        cov = np.asarray(cov)
-        std = std_scale*np.sqrt(cov[:,0,0])
-        std_top = np.minimum(actual+std, [count + 10])
-        std_btm = np.maximum(actual-std, [-50])
+    cov = np.asarray(cov)
+    std = std_scale*np.sqrt(cov[:,0,0])
+    std_top = np.minimum(actual+std, [count + 10])
+    std_btm = np.maximum(actual-std, [-50])
 
-        std_top = actual + std
-        std_btm = actual - std
+    std_top = actual + std
+    std_btm = actual - std
 
-        bp.plot_track(actual,c='k')
-        bp.plot_measurements(range(1, count + 1), zs)
-        bp.plot_filter(range(1, count + 1), ps)
+    bp.plot_track(actual,c='k')
+    bp.plot_measurements(range(1, count + 1), zs)
+    bp.plot_filter(range(1, count + 1), ps)
 
-        plt.plot(std_top, linestyle=':', color='k', lw=1, alpha=0.4)
-        plt.plot(std_btm, linestyle=':', color='k', lw=1, alpha=0.4)
-        plt.fill_between(range(len(std_top)), std_top, std_btm,
-                         facecolor='yellow', alpha=0.2, interpolate=True)
-        plt.legend(loc=4)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        if y_lim is not None:
-            plt.ylim(y_lim)
-        else:
-            plt.ylim((-50, count + 10))
+    plt.plot(std_top, linestyle=':', color='k', lw=1, alpha=0.4)
+    plt.plot(std_btm, linestyle=':', color='k', lw=1, alpha=0.4)
+    plt.fill_between(range(len(std_top)), std_top, std_btm,
+                     facecolor='yellow', alpha=0.2, interpolate=True)
+    plt.legend(loc=4)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    if y_lim is not None:
+        plt.ylim(y_lim)
+    else:
+        plt.ylim((-50, count + 10))
 
-        plt.xlim((0,count))
-        plt.title(title)
+    plt.xlim((0,count))
+    plt.title(title)
+    plt.show()
 
     if plot_P:
-        with interactive_plot():
-            ax = plt.subplot(121)
-            ax.set_title("$\sigma^2_x$ (pos variance)")
-            plot_covariance(cov, (0, 0))
-            ax = plt.subplot(122)
-            ax.set_title("$\sigma^2_\dot{x}$ (vel variance)")
-            plot_covariance(cov, (1, 1))
+        ax = plt.subplot(121)
+        ax.set_title("$\sigma^2_x$ (pos variance)")
+        plot_covariance(cov, (0, 0))
+        ax = plt.subplot(122)
+        ax.set_title("$\sigma^2_\dot{x}$ (vel variance)")
+        plot_covariance(cov, (1, 1))
+        plt.show()
 
 
 def plot_covariance(P, index=(0, 0)):

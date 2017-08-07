@@ -16,7 +16,7 @@ for more information.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import code.book_plots as bp
+import kf_book.book_plots as bp
 import filterpy.kalman as kf
 from math import radians, sin, cos, sqrt, exp
 import matplotlib.pyplot as plt
@@ -215,7 +215,7 @@ def show_radar_chart():
 
 
 
-    ax.annotate('$\Theta$', xy=(1.2, 1.05), color='b')
+    ax.annotate('$\epsilon$', xy=(1.2, 1.05), color='b')
     ax.annotate('Aircraft', xy=(2.04,2.), color='b')
     ax.annotate('altitude (y)', xy=(2.04,1.5), color='k')
     ax.annotate('x', xy=(1.5, .9))

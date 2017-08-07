@@ -1,3 +1,5 @@
+call run_notebooks
+cd ..
 ipython merge_book.py
 
 jupyter nbconvert --to latex --template book book.ipynb
